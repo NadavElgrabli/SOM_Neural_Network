@@ -4,7 +4,57 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 import csv
+import multiprocessing
 import random
+import hexalattice
+import pygame
+from matplotlib.patches import RegularPolygon
+
+import matplotlib.pyplot as plt
+from matplotlib.patches import RegularPolygon
+import numpy as np
+import matplotlib.backends.backend_agg as agg
+
+def genGrid():
+    colors = [["#e6f7ff"], ["#99ddff"], ["#33ccff"], ["#6666ff"], ["#0099ff"],
+              ["#0066ff"], ["#3366ff"], ["#0044cc"], ["#000099"], ["#000066"],]
+    coord = []
+    color = (100, 100, 50)
+    map_radius = 4
+    for q in range(-map_radius, map_radius+1):
+        r1 = max(-map_radius, -q - map_radius)
+        r2 = min(map_radius, -q + map_radius);
+        for r in range(r1, r2+1):
+            coord.append([q, r, -q - r])
+            print([q, r, -q - r])
+            # colors.append(rhinoscriptsytnax.CreateColor(q, r, -q - r) )
+
+    # Horizontal cartesian coords
+    hcoord = [c[0] for c in coord]
+    print(hcoord)
+    # Vertical cartersian coords
+    vcoord = [2. * np.sin(np.radians(60)) * (c[1] - c[2]) / 3. for c in coord]
+    print(vcoord)
+    for i in range(len(vcoord)):
+        temp = vcoord[i]
+        vcoord[i] = -hcoord[i]
+        hcoord[i] = temp
+
+    fig, ax = plt.subplots(1, figsize=(5, 5))
+    ax.set_aspect('equal')
+
+    # Add some coloured hexagons
+    for x, y in zip(hcoord, vcoord):
+        color = random.choice(colors)[0]
+
+        hex = RegularPolygon((x, y), numVertices=6, radius=2. / 3,
+                                 orientation=np.radians(120), facecolor=color,
+                                 alpha=0.9, edgecolor='k')
+        ax.add_patch(hex)
+    ax.scatter(hcoord, vcoord, alpha=0.3)
+
+    plt.show()
+
 
 FEATURES = [
     'Yamina',
@@ -42,11 +92,11 @@ def prepare_grid():
         grid.append([random_sample() for _ in range(8 - i)])
     return grid
 
+
 def score(sample):
     """
     score of row in data / pixel in grid
     """
-
     raise NotImplementedError()
 
 def choose_representetive(data_row, grid):
@@ -219,19 +269,87 @@ def correct_pixel_neighborhood(grid, row, pixel_i, pixel_j, pixel_z):
 
 
 MIN_SCORE = 20
+def sidplay_grid():
+    colors = [["#e6f7ff"], ["#99ddff"], ["#33ccff"], ["#6666ff"], ["#0099ff"],
+              ["#0066ff"], ["#3366ff"], ["#0044cc"], ["#000099"], ["#000066"]]
+    labels = [['yes'], ['no'], ['yes'], ['no'], ['yes'], ['no'], ['no']]
+    coord = []
+    color = (100, 100, 50)
+    map_radius = 5
+    for q in range(-map_radius, map_radius):
+        r1 = max(-map_radius, -q - map_radius)
+        r2 = min(map_radius, -q + map_radius);
+        for r in range(r1, r2):
+            coord.append([q, r, -q - r])
+
+    # Horizontal cartesian coords
+    hcoord = [c[0] for c in coord]
+
+    # Vertical cartersian coords
+    vcoord = [2. * np.sin(np.radians(60)) * (c[1] - c[2]) / 3. for c in coord]
+
+    for i in range(len(vcoord)):
+        temp = vcoord[i]
+        vcoord[i] = -hcoord[i]
+        hcoord[i] = temp
+
+    fig, ax = plt.subplots(1, figsize=(5, 5))
+    ax.set_aspect('equal')
+
+    # Add some coloured hexagons
+    for x, y, c, l in zip(hcoord, vcoord, colors, labels):
+        color = c[0]
+
+        hex = RegularPolygon((x, y), numVertices=6, radius=2. / 3,
+                             orientation=np.radians(120), facecolor=color,
+                             alpha=0.9, edgecolor='k')
+        ax.add_patch(hex)
+        # Also add a text label
+        ax.text(x, y + 0.2, l[0], ha='center', va='center', size=20)
+
+    ax.scatter(hcoord, vcoord, alpha=0.3)
+    ax = fig.gca()
+    canvas = agg.FigureCanvasAgg(fig)
+    canvas.draw()
+    plt.pause(0.01)
+    renderer = canvas.get_renderer()
+    raw_data = renderer.tostring_rgb()
+    return canvas, raw_data
 
 if __name__ == '__main__':
     data = load_data()
     grid = prepare_grid()
+    pygame.init()
 
+    width = 400
+    hight = 400
+    display_surface = pygame.display.set_mode((width, hight))
+    pygame.display.set_caption('Show Text')
+    count = 0
+    font = pygame.font.Font('freesansbold.ttf', 15)
+    text = font.render('generation: ' + str(count), True, "pink")
+    textRect = text.get_rect()
+    textRect.center = (width // 2, 25)
+    gridRect = pygame.Rect(50, 50, 350, 350)
     while True:
-        for row in data:
-            pixel_i, pixel_j = choose_representetive(row, grid)
-            correct_pixel_neighborhood(row, pixel_i, pixel_j)
+        display_surface.fill("white")
+        text = font.render('generation: ' + str(count), True, "pink")
+        display_surface.blit(text, textRect)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            pygame.display.update()
+            count += 1
 
-        total_score = calc_total_score()
-        if total_score < MIN_SCORE:
-            break
+    # work = multiprocessing.Process(target=genGrid())
 
+    # while True:
+    #     for row in data:
+    #         pixel_i, pixel_j = choose_representetive(row, grid)
+    #         correct_pixel_neighborhood(row, pixel_i, pixel_j)
+    #         pygame.display.update()
 
-
+    # total_score = calc_total_score()
+    # if total_score < MIN_SCORE:
+    #     break
