@@ -21,7 +21,7 @@ FEATURES = [
     'Tikva Hadasha',
 ]
 
-MAX_VOTES_PER_FEATURE = 10000
+MAX_VOTES_PER_FEATURE = 50000
 
 def load_data():
     with open('Elec_24.csv', newline='') as csvfile:
@@ -46,6 +46,7 @@ def score(sample):
     """
     score of row in data / pixel in grid
     """
+
     raise NotImplementedError()
 
 def choose_representetive(data_row, grid):
@@ -67,43 +68,140 @@ def choose_representetive(data_row, grid):
 
     return best_representitive
 
-def get_neighborhood(i, j):
-    if i <= 5:
-        neighbors = {
-            'middle': (i, j),
-            'up_left' : (i - 1, j - 1),
-            'up_right' : (i - 1, j),
-            'left' : (i, j -1),
-            'right' : (i, j + 1),
-            'down_left' : (i + 1, j - 1),
-            'down_right' : (i + 1, j),
-        }
-    else:
-        # complete for the rows after the 5th row
-        pass
+# def get_neighborhood(i, j):
+#     if i <= 5:
+#         neighbors = {
+#             # myself
+#             'middle': (i, j),
+#
+#             # first tier neighbors
+#             'up_left': (i - 1, j - 1),
+#             'up_right': (i - 1, j),
+#             'left': (i, j - 1),
+#             'right': (i, j + 1),
+#             'down_left': (i + 1, j),
+#             'down_right': (i + 1, j + 1),
+#
+#             # second tier neighbors
+#             'up_up_left': (i - 2, j - 2),
+#             'up_up_middle': (i - 2, j-1),
+#             'up_up_right': (i - 2, j),
+#             'up_left_left': (i-1, j-2),
+#             'up_right_right': (i-1, j+1),
+#             'left_left': (i, j-2),
+#             'right_right': (i, j+2),
+#             'down_left_left': (i+1, j-1),
+#             'down_right_right': (i+1, j+2),
+#             'down_down_left': (i+2, j),
+#             'down_down_middle': (i+2, j+1),
+#             'down_down_right': (i+2, j+2),
+#         }
+#     else:
+#         # complete for the rows after the 5th row
+#         neighbors = {
+#             # myself
+#             'middle': (i, j),
+#
+#             # first tier neighbors
+#             'up_left': (i - 1, j),
+#             'up_right': (i - 1, j + 1),
+#             'left': (i, j - 1),
+#             'right': (i, j + 1),
+#             'down_left': (i + 1, j - 1),
+#             'down_right': (i + 1, j),
+#
+#             # second tier neighbors
+#             'up_up_left': (i - 2, j),
+#             'up_up_middle': (i - 2, j + 1),
+#             'up_up_right': (i - 2, j + 2),
+#             'up_left_left': (i - 1, j - 1),
+#             'up_right_right': (i - 1, j + 2),
+#             'left_left': (i, j - 2),
+#             'right_right': (i, j + 2),
+#             'down_left_left': (i + 1, j - 2),
+#             'down_right_right': (i + 1, j + 1),
+#             'down_down_left': (i + 2, j - 2),
+#             'down_down_middle': (i + 2, j - 1),
+#             'down_down_right': (i + 2, j),
+#         }
+#         pass
+#
+#     # Remove neighbors outside the grid
+#     for k, (n_i, n_j) in neighbors:
+#         if n_i < 0 or n_i >= 9 or n_j < 0 or n_j >= len(grid[i]):
+#             del neighbors[k]
+#
+#     return neighbors
+
+def get_neighborhood(i, j , z):
+    neighbors = {
+        # myself
+        'middle': (i, j, z),
+
+        # first tier neighbors
+        'up_left': (i, j - 1, z+1),
+        'up_right': (i + 1, j-1, z),
+        'left': (i-1, j, z+1),
+        'right': (i+1, j, z-1),
+        'down_left': (i - 1, j+1, z),
+        'down_right': (i, j + 1, z-1),
+
+        # second tier neighbors
+        'up_up_left': (i, j - 2, z+2),
+        'up_up_middle': (i + 1, j-2, z+1),
+        'up_up_right': (i + 2, j-2, 0),
+        'up_left_left': (i-1, j-1, z+2),
+        'up_right_right': (i+2, j-1, z-1),
+        'left_left': (i-2, j, z+2),
+        'right_right': (i+2, j, z-2),
+        'down_left_left': (i-2, j+1, z+1),
+        'down_right_right': (i+1, j+1, z-2),
+        'down_down_left': (i-2, j+2, z),
+        'down_down_middle': (i-1, j+2, z-1),
+        'down_down_right': (i, j+2, z-2),
+    }
 
     # Remove neighbors outside the grid
-    for k, (n_i, n_j) in neighbors:
-        if n_i < 0 or n_i >= 9 or n_j < 0 or n_j >= len(grid[i]):
+    for k, (n_i, n_j, n_z) in neighbors:
+        if n_i < -4 or n_i > 4 or n_j < -4 or n_j > 4 or n_z < -4 or n_z > 4:
             del neighbors[k]
 
     return neighbors
 
 
-def correct_neighbor(grid, neighbor_location, i, j, row):
+def correct_neighbor(grid, neighbor_location, i, j, z, row):
     """
     Correct specific neighbor.
     """
+    myself = ['middle']
+    first_tier_neighbors = ['up_left',
+            'up_right',
+            'left',
+            'right',
+            'down_left',
+            'down_right']
 
-    first_tier_neighbors = ['up_left', '...', 'down_right']
-    second_tier_neighbors = ['up_up_left', '...', 'down_down_right']
+    second_tier_neighbors = ['up_up_left',
+        'up_up_middle',
+        'up_up_right',
+        'up_left_left',
+        'up_right_right',
+        'left_left',
+        'right_right',
+        'down_left_left',
+        'down_right_right',
+        'down_down_left',
+        'down_down_middle',
+        'down_down_right']
 
     # correct the values of the neighbor i, j to be closer to the row's features
-    pixel = grid[i][j]
+    pixel = grid[i][j][z]
     for feature in FEATURES:
-        #TODO: add fix for mysefl by 30%
+        if neighbor_location in myself:
 
-        # correct pixel in feature (miflaga) k to be closer to the row[feature]
+            pixel[feature] += 0.2 * (row[feature] - pixel[feature])
+
+        # correct pixel in feature (miflaga) k to be closer to the row[feature] (data_row)
         if neighbor_location in first_tier_neighbors:
             #TODO: fix calculation
             pixel[feature] += 0.2 * (row[feature] - pixel[feature])
@@ -111,12 +209,12 @@ def correct_neighbor(grid, neighbor_location, i, j, row):
             pixel[feature] += 0.1 * (row[feature] - pixel[feature])
 
 
-def correct_pixel_neighborhood(grid, row, pixel_i, pixel_j):
+def correct_pixel_neighborhood(grid, row, pixel_i, pixel_j, pixel_z):
     """
     Correct all the neighbors by calling to correct_neighbor
     """
-    neighbors = get_neighborhood(pixel_i, pixel_j)
-    for neighbor_location, (i, j) in neighbors:
+    neighbors = get_neighborhood(pixel_i, pixel_j, pixel_z)
+    for neighbor_location, (i, j, z) in neighbors:
         correct_neighbor(grid, neighbor_location, i, j, row)
 
 
