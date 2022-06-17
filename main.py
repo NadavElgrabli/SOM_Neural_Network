@@ -204,7 +204,8 @@ if __name__ == '__main__':
         for row in data:
             coord = choose_representative(row, grid)
             correct_pixel_neighborhood(grid, row, coord[0], coord[1], coord[2])
-            colors[coord] = row["Economic Cluster"]
+            # colors[coord] = row["Economic Cluster"]
+            print(f"{row['Municipality']}: {coord}")
             if coord in count:
                 count[coord] += 1
                 sum[coord] += row["Economic Cluster"]
@@ -218,13 +219,14 @@ if __name__ == '__main__':
         # Choose color
         # for row in data:
         #     coord = choose_representative(row, grid)
-        #     # print(f"{row['Municipality']}: {coord}")
+
 
         grid_fe.draw_grid(colors)
 
         total_score = calc_total_score(data, grid)
         print(f"Iteration: {iteration}, total_score: {total_score}")
         if total_score < MIN_SCORE:
+
             myscreenshot = pyautogui.screenshot()
             myscreenshot.save(r'C:\Users\shaeo\Pictures\Screenshots\re.png')
             break
