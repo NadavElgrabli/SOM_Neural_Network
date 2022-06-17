@@ -194,20 +194,31 @@ if __name__ == '__main__':
     grid = prepare_grid()
     grid_fe = Grid(grid)  # create frontend object to draw the grid
 
-    max_iterations = 1000
+    max_iterations = 100
     iteration = 0
     while True:
         # correct phase
+        colors = {}
+        sum = {}
+        count = {}
         for row in data:
             coord = choose_representative(row, grid)
             correct_pixel_neighborhood(grid, row, coord[0], coord[1], coord[2])
+            colors[coord] = row["Economic Cluster"]
+            if coord in count:
+                count[coord] += 1
+                sum[coord] += row["Economic Cluster"]
+            else:
+                count[coord] = 1
+                sum[coord] = row["Economic Cluster"]
+
+        for k in sum:
+            colors[k] = int(sum.get(k) / count.get(k))
 
         # Choose color
-        colors = {}
-        for row in data:
-            coord = choose_representative(row, grid)
-            colors[coord] = row["Economic Cluster"]
-            print(f"{row['Municipality']}: {coord}")
+        # for row in data:
+        #     coord = choose_representative(row, grid)
+        #     # print(f"{row['Municipality']}: {coord}")
 
         grid_fe.draw_grid(colors)
 
