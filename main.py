@@ -1,3 +1,5 @@
+import pyautogui
+
 from frontend import Grid
 
 import csv
@@ -30,7 +32,7 @@ def load_data():
         reader = csv.DictReader(csvfile)
         data = []
         for row in reader:
-            for k,v in row.items():
+            for k, v in row.items():
                 try:
                     row[k] = int(v)
                 except:
@@ -91,7 +93,7 @@ def choose_representative(data_row, grid):
 
 def get_neighborhood(i, j, z):
     def coord(a, b):
-        return (a, b , -a - b)
+        return (a, b, -a - b)
 
     neighbors = {
         # myself
@@ -167,6 +169,7 @@ def correct_neighbor(grid, neighbor_location, i, j, z, row):
         else:
             pixel[feature] += 0.1 * (row[feature] - pixel[feature])
 
+
 def calc_total_score(data, grid_data):
     total_distances = 0
     for row in data:
@@ -186,10 +189,10 @@ def correct_pixel_neighborhood(grid, row, pixel_i, pixel_j, pixel_z):
 
 
 if __name__ == '__main__':
-    # grid_fe = Grid()  # create frontend object to draw the grid
 
     data = load_data()
     grid = prepare_grid()
+    grid_fe = Grid(grid)  # create frontend object to draw the grid
 
     max_iterations = 1000
     iteration = 0
@@ -206,13 +209,16 @@ if __name__ == '__main__':
             colors[coord] = row["Economic Cluster"]
             print(f"{row['Municipality']}: {coord}")
 
-
-        # grid_fe.draw_grid(colors)
+        grid_fe.draw_grid(colors)
 
         total_score = calc_total_score(data, grid)
         print(f"Iteration: {iteration}, total_score: {total_score}")
         if total_score < MIN_SCORE:
+            myscreenshot = pyautogui.screenshot()
+            myscreenshot.save(r'C:\Users\shaeo\Pictures\Screenshots\re.png')
             break
         iteration += 1
         if iteration >= max_iterations:
+            myscreenshot = pyautogui.screenshot()
+            myscreenshot.save(r'C:\Users\shaeo\Pictures\Screenshots\re.png')
             break
