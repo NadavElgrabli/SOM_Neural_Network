@@ -1,12 +1,17 @@
-import pyautogui
-
+import sys
 from frontend import Grid
-
+import pyautogui
 import csv
 import random
 import numpy as np
 
+
+# Parameters:
+MAX_VOTES_PER_FEATURE = 60000
+MIN_SCORE = 20000
 MAP_RADIUS = 4
+MAX_ITERATIONS = 100
+ITERATION = 0
 
 FEATURES = [
     'Yamina',
@@ -22,9 +27,6 @@ FEATURES = [
     'Shas',
     'Tikva Hadasha',
 ]
-
-MAX_VOTES_PER_FEATURE = 50000
-MIN_SCORE = 1000
 
 
 def load_data():
@@ -194,8 +196,6 @@ if __name__ == '__main__':
     grid = prepare_grid()
     grid_fe = Grid(grid)  # create frontend object to draw the grid
 
-    max_iterations = 100
-    iteration = 0
     while True:
         # correct phase
         colors = {}
@@ -224,14 +224,14 @@ if __name__ == '__main__':
         grid_fe.draw_grid(colors)
 
         total_score = calc_total_score(data, grid)
-        print(f"Iteration: {iteration}, total_score: {total_score}")
+        print(f"Iteration: {ITERATION}, total_score: {total_score}")
         if total_score < MIN_SCORE:
 
             myscreenshot = pyautogui.screenshot()
-            myscreenshot.save(r'C:\Users\shaeo\Pictures\Screenshots\re.png')
+            myscreenshot.save(r'C:\Users\ereze\OneDrive\Pictures\Screenshots\re.png')
             break
-        iteration += 1
-        if iteration >= max_iterations:
+        ITERATION += 1
+        if ITERATION >= MAX_ITERATIONS:
             myscreenshot = pyautogui.screenshot()
-            myscreenshot.save(r'C:\Users\shaeo\Pictures\Screenshots\re.png')
+            myscreenshot.save(r'C:\Users\ereze\OneDrive\Pictures\Screenshots\re.png')
             break
